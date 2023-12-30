@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'advent_3_gear_ratios'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=advent_3_gear_ratios",
+                    "--package=advent_3_gear_ratios"
+                ],
+                "filter": {
+                    "name": "advent_3_gear_ratios",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'advent_3_gear_ratios'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=advent_3_gear_ratios",
+                    "--package=advent_3_gear_ratios"
+                ],
+                "filter": {
+                    "name": "advent_3_gear_ratios",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
