@@ -37,9 +37,18 @@ fn part1(leaderboard: &Leaderboard) -> Result<()> {
     
     for race in &leaderboard.races {
         let mut race_wins = 0;
+        let mut points_per_it = 0;
 
-        race_wins += part_1_rec(race.time as i64, false, 0, race.distance as i64);
-        race_wins += part_1_rec(race.time as i64, true, 0, race.distance as i64);
+        let mut time = race.time;
+        while time > 0 {
+            let points = points_per_it * time;
+            if points > race.distance {
+                race_wins += 1;
+            }
+    
+            points_per_it += 1;
+            time -= 1;
+        }
 
         total_wins *= race_wins;
     }
@@ -48,39 +57,16 @@ fn part1(leaderboard: &Leaderboard) -> Result<()> {
     return Ok(());
 }
 
-fn part_1_rec(step: i64, pressed: bool, point_per_it: i64, score_needed: i64) -> i64 {
-    if !pressed && point_per_it * step > score_needed {
-        1
-    }
-    else if !pressed {
-        0
-    }
-    else if step >= 1 {
-        part_1_rec(step - 1, false, point_per_it + 1, score_needed) + part_1_rec(step - 1, true, point_per_it + 1, score_needed)
-    }
-    else {
-        if point_per_it > score_needed { 1 } else {0}
-    }
-}
-
 fn part2(leaderboard: &Leaderboard) -> Result<()> {
-    let mut time = leaderboard.races.iter().map(|x| x.time.to_string()).collect::<Vec<_>>().join("").parse::<i64>().unwrap();
-    let distance = leaderboard.races.iter().map(|x| x.distance.to_string()).collect::<Vec<_>>().join("").parse::<i64>().unwrap();
+    let a: f64 = -1f64;
+    let time = leaderboard.races.iter().map(|x| x.time.to_string()).collect::<Vec<_>>().join("").parse::<f64>().unwrap();
+    let distance = - leaderboard.races.iter().map(|x| x.distance.to_string()).collect::<Vec<_>>().join("").parse::<f64>().unwrap() + 1.;
 
-    let mut race_wins = 0;
-    let mut points_per_it = 0;
-    while time > 0 {
-        let points = points_per_it * time;
-        if points > distance {
-            race_wins += 1;
-        }
+    let x1 = ((-time + (time.powi(2) - 4. * a * distance).sqrt()) / (2. * a)).ceil();
+    let x2 = ((-time - (time.powi(2) - 4. * a * distance).sqrt()) / (2. * a)).floor();
 
-        points_per_it += 1;
-        time -= 1;
-    }
-
-
-    println!("Part 2 answer: {}", race_wins);
+    let ways_to_win = x2 - x1 + 1.;
+    println!("Part 2 answer: {}", ways_to_win);
     return Ok(());
 }
 
