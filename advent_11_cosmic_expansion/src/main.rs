@@ -45,32 +45,27 @@ fn parse(modifier: i64) -> Result<Universe> {
 }
 
 fn part1(universe: &Universe) -> Result<()> {
-    let tot_dist = universe.galaxies.iter()
-        .tuple_combinations()
-        .map(|(a, b)| (a, b))
-        .unique()
-        .map(|(from, to)| (from, to, get_distance((from.0, from.1), (to.0, to.1))))
-        .collect::<Vec<_>>();
-
-
-    println!("Part 1 answer: {}", tot_dist.iter().map(|x| x.2).sum::<i64>());
+    let tot_dist = calculate_total_dist(&universe);
+    println!("Part 1 answer: {}", tot_dist);
     return Ok(());
 }
 
 fn part2(universe: &Universe) -> Result<()> {
-    let tot_dist = universe.galaxies.iter()
-        .tuple_combinations()
-        .map(|(a, b)| (a, b))
-        .unique()
-        .map(|(from, to)| (from, to, get_distance((from.0, from.1), (to.0, to.1))))
-        .collect::<Vec<_>>();
-
-
-    println!("Part 2 answer: {}", tot_dist.iter().map(|x| x.2).sum::<i64>());
+    let tot_dist = calculate_total_dist(&universe);
+    println!("Part 2 answer: {}", tot_dist);
     return Ok(());
 }
 
-fn get_distance(from: (i64, i64), to: (i64, i64)) -> i64 {
+fn calculate_total_dist(universe: &Universe) -> i64 {
+    return universe.galaxies.iter()
+        .tuple_combinations()
+        .map(|(a, b)| (a, b))
+        .unique()
+        .map(get_distance)
+        .sum::<i64>();
+}
+
+fn get_distance((from, to): (&(i64, i64), &(i64, i64))) -> i64 {
     (from.0 - to.0).abs() + (from.1 - to.1).abs() 
 }
 
@@ -162,4 +157,13 @@ Between galaxy 3 and galaxy 6: 17
 Between galaxy 8 and galaxy 9: 5
 In this example, after expanding the universe, the sum of the shortest path between all 36 pairs of galaxies is 374.
 
-Expand the universe, then find the length of the shortest path between every pair of galaxies. What is the sum of these lengths?*/
+Expand the universe, then find the length of the shortest path between every pair of galaxies. What is the sum of these lengths? 
+
+--- Part Two ---
+The galaxies are much older (and thus much farther apart) than the researcher initially estimated.
+
+Now, instead of the expansion you did before, make each empty row or column one million times larger. That is, each empty row should be replaced with 1000000 empty rows, and each empty column should be replaced with 1000000 empty columns.
+
+(In the example above, if each empty row or column were merely 10 times larger, the sum of the shortest paths between every pair of galaxies would be 1030. If each empty row or column were merely 100 times larger, the sum of the shortest paths between every pair of galaxies would be 8410. However, your universe will need to expand far beyond these values.)
+
+Starting with the same initial image, expand the universe according to these new rules, then find the length of the shortest path between every pair of galaxies. What is the sum of these lengths?*/
