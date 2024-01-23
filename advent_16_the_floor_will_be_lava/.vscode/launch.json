@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'advent_16_the_floor_will_be_lava'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=advent_16_the_floor_will_be_lava",
+                    "--package=advent_16_the_floor_will_be_lava"
+                ],
+                "filter": {
+                    "name": "advent_16_the_floor_will_be_lava",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'advent_16_the_floor_will_be_lava'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=advent_16_the_floor_will_be_lava",
+                    "--package=advent_16_the_floor_will_be_lava"
+                ],
+                "filter": {
+                    "name": "advent_16_the_floor_will_be_lava",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
