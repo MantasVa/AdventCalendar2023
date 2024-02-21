@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'advent_21_step_counter'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=advent_21_step_counter",
+                    "--package=advent_21_step_counter"
+                ],
+                "filter": {
+                    "name": "advent_21_step_counter",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'advent_21_step_counter'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=advent_21_step_counter",
+                    "--package=advent_21_step_counter"
+                ],
+                "filter": {
+                    "name": "advent_21_step_counter",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
