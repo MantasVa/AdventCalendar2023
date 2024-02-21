@@ -102,17 +102,16 @@ fn part1(map: &Map) -> Result<()> {
     let mut removable = (0..map.sand_slabs.len()).collect::<HashSet<_>>();
 
     let mut ground = BTreeSet::<(isize, usize)>::new();
-    while let Some((fb_bottom, fb_index)) = by_height.pop_first() {
+    while let Some((_, fb_index)) = by_height.pop_first() {
         let mut saved_height = 0;
         let mut current_bottom = 0;
         let mut supporter = Vec::new();
-
         for (gb_top, gb_index) in ground.iter().rev() {
-            if saved_height > 0 && *gb_top < saved_height {
+            if saved_height > 0 && *gb_top < current_bottom {
                 break;
             }
             if map.sand_slabs[fb_index].collides_xy(&map.sand_slabs[gb_index]) {
-                let height = map.sand_slabs[fb_index].z2 - map.sand_slabs[fb_index].z1 + 1;
+                let height = map.sand_slabs[fb_index].z2 - map.sand_slabs[fb_index].z1;
                 saved_height = gb_top + 1 + height;
                 current_bottom = *gb_top;
                 supporter.push(*gb_index);
@@ -129,9 +128,7 @@ fn part1(map: &Map) -> Result<()> {
         }
     }
 
-
-
-    println!("Part 1 answer: {}", -1);
+    println!("Part 1 answer: {}", removable.len());
     return Ok(());
 }
 
