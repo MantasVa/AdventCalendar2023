@@ -1,21 +1,17 @@
-use std::{cmp, collections::{BTreeSet, HashMap, HashSet }, fs};
+use std::{collections::{BTreeSet, HashMap, HashSet }, fs};
 
 pub type Error = Box<dyn std::error::Error>;
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Clone)]
 struct Map {
-    sand_slabs: HashMap<usize, Coord>,
+    sand_slabs: HashMap<usize, Cube>,
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Copy)]
-struct Coord { x1: isize, y1: isize, z1: isize, x2: isize, y2: isize, z2: isize}
+#[derive(Clone, PartialEq, Eq)]
+struct Cube { x1: isize, y1: isize, z1: isize, x2: isize, y2: isize, z2: isize }
 
-impl Coord {
-    fn with_z(&self, z1: isize, z2: isize) -> Coord {
-        Coord { x1: self.x1, y1: self.y1, z1, x2: self.x2, y2: self.y2, z2 }
-    }
-
+impl Cube {
     fn collides_xy(&self, other: &Self) -> bool {
         self.x1 <= other.x2 && other.x1 <= self.x2 &&
         self.y1 <= other.y2 && other.y1 <= self.y2
@@ -33,9 +29,9 @@ fn main() -> Result<()> {
 
 fn parse() -> Result<Map> {
     let input = fs::read_to_string("input.txt")?;
-    let mut id = 0;
+    let mut id = -1isize;
 
-    let mut sand_slabs = input.lines().map(|line| {
+    let sand_slabs = input.lines().map(|line| {
         let (start, end) = line.split_once('~').unwrap();
 
         let start = start.split(',').collect::<Vec<_>>();
@@ -49,52 +45,13 @@ fn parse() -> Result<Map> {
         let z2 = end[2].parse().unwrap();
         id += 1;
 
-        (id, Coord { x1, y1, z1, x2, y2, z2 })
+        (id as usize, Cube { x1, y1, z1, x2, y2, z2 })
     }).collect::<HashMap<_, _>>();
 
     Ok(Map { sand_slabs })
 }
 
 fn part1(map: &Map) -> Result<()> {
-    
-    // let mut slabs = Vec::<Coord>::new();
-    // for slab in map.sand_slabs.iter() {
-    //     let top_slab = slabs.iter().filter(|sl| slab.collides_xy(sl))
-    //     .max_by(|a, b| a.z2.cmp(&b.z2));
-
-    //     if let Some(top_sl) = top_slab {
-    //         let z_ground = top_sl.z2 + 1;
-    //         let dist = slab.z1 - z_ground;
-
-    //         let z1 = slab.z1 - dist;
-    //         let z2 = slab.z2 - dist;
-
-    //         slabs.push(slab.with_z(z1, z2))
-    //     } else {
-    //         if slab.z1 == 1 {
-    //             slabs.push(slab.clone())
-    //         } else {
-    //             let dist = slab.z1 - 1;
-
-    //             let z1 = slab.z1 - dist;
-    //             let z2 = slab.z2 - dist;
-
-    //             slabs.push(slab.with_z(z1, z2))
-    //         }
-    //     }
-    // }
-
-    // let mut counter = 0;
-    // let max_z = slabs.iter().max_by(|a, b| a.z2.cmp(&b.z2)).unwrap().z2;
-    // for slab in &slabs {
-    //     let supp_z1 = &slabs.iter().find(|sl| (sl.z1 == slab.z1 || sl.z2 == slab.z1) && sl.id != slab.id);
-    //     let supp_z2 = &slabs.iter().find(|sl| (sl.z1 == slab.z2 || sl.z2 == slab.z2) && sl.id != slab.id);
-
-    //     if max_z == slab.z2 || (supp_z1.is_some() && supp_z2.is_some()) {
-    //         counter += 1;
-    //     }
-    // }
-    
     let mut by_height = map.sand_slabs.iter()
         .map(|sl| (sl.1.z2, sl.0))
         .collect::<BTreeSet<_>>();
@@ -133,29 +90,75 @@ fn part1(map: &Map) -> Result<()> {
 }
 
 fn part2(map: &Map) -> Result<()> {
+    let mut by_height = map.sand_slabs.iter()
+        .map(|sl| (sl.1.z2, sl.0))
+        .collect::<BTreeSet<_>>();
 
-    println!("Part 2 answer: {}", -1);
+    let mut supported_by = HashMap::<usize, HashSet<usize>>::new();
+    for slab in &map.sand_slabs {
+        supported_by.insert(*slab.0, HashSet::new());
+    }
+
+    let mut removable = (0..map.sand_slabs.len()).collect::<HashSet<_>>();
+
+    let mut ground = BTreeSet::<(isize, usize)>::new();
+    while let Some((_, fb_index)) = by_height.pop_first() {
+        let mut saved_height = 0;
+        let mut current_bottom = 0;
+        let mut supporter = Vec::new();
+        for (gb_top, gb_index) in ground.iter().rev() {
+            if saved_height > 0 && *gb_top < current_bottom {
+                break;
+            }
+            if map.sand_slabs[fb_index].collides_xy(&map.sand_slabs[gb_index]) {
+                let height = map.sand_slabs[fb_index].z2 - map.sand_slabs[fb_index].z1;
+                saved_height = gb_top + 1 + height;
+                current_bottom = *gb_top;
+                supporter.push(*gb_index);
+
+                let support = supported_by.get_mut(fb_index).unwrap();
+                support.insert(*gb_index);
+            }
+        }
+        if saved_height == 0 {
+            let height = map.sand_slabs[fb_index].z2 - map.sand_slabs[fb_index].z1 + 1;
+            ground.insert((height, *fb_index));
+        } else {
+            ground.insert((saved_height, *fb_index));
+        }
+        if supporter.len() == 1 {
+            removable.remove(&supporter[0]);
+        }
+    }
+
+    let mut total = 0;
+    for (index, _) in map.sand_slabs.iter().enumerate() {
+        if removable.contains(&index) {
+            continue;
+        }
+        for brick_id in 0..map.sand_slabs.len() {
+            if index != brick_id && will_fall(&supported_by, index, brick_id) {
+                total += 1;
+            }
+        }
+    }
+
+    println!("Part 2 answer: {}", total);
     return Ok(());
 }
 
-#[cfg(test)]
-mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
-
-    #[test]
-    fn test_cubes_collide() {
-        let cube1 = Coord { id: 1, x1: 1, y1: 1, z1: 1, x2: 4, y2: 4, z2: 4 };
-        let cube2 = Coord { id: 2, x1: 3, y1: 4, z1: 1, x2: 6, y2: 6, z2: 1 };
-        assert!(cube1.collides_xy(&cube2));
+fn will_fall(supported_by: &HashMap<usize, HashSet<usize>>, removing: usize, index: usize) -> bool {
+    if removing == index {
+        return true;
     }
 
-    #[test]
-    fn test_cubes_not_collide() {
-        let cube1 = Coord { id: 1, x1: 1, y1: 1, z1: 1, x2: 4, y2: 4, z2: 4 };
-        let cube2 = Coord { id: 2, x1: 5, y1: 6, z1: 1, x2: 6, y2: 6, z2: 1 };
-        assert!(!cube1.collides_xy(&cube2));
+    for i in supported_by[&index].iter() {
+        if !will_fall(supported_by, removing, *i) {
+            return false;
+        }
     }
+
+    !supported_by[&index].is_empty()
 }
 
 /*--- Day 22: Sand Slabs ---
@@ -269,4 +272,17 @@ Brick F cannot be disintegrated; the brick above it (G) would fall.
 Brick G can be disintegrated; it does not support any other bricks.
 So, in this example, 5 bricks can be safely disintegrated.
 
-Figure how the blocks will settle based on the snapshot. Once they've settled, consider disintegrating a single brick; how many bricks could be safely chosen as the one to get disintegrated? */
+Figure how the blocks will settle based on the snapshot. Once they've settled, consider disintegrating a single brick; how many bricks could be safely chosen as the one to get disintegrated? 
+
+--- Part Two ---
+Disintegrating bricks one at a time isn't going to be fast enough. While it might sound dangerous, what you really need is a chain reaction.
+
+You'll need to figure out the best brick to disintegrate. For each brick, determine how many other bricks would fall if that brick were disintegrated.
+
+Using the same example as above:
+
+Disintegrating brick A would cause all 6 other bricks to fall.
+Disintegrating brick F would cause only 1 other brick, G, to fall.
+Disintegrating any other brick would cause no other bricks to fall. So, in this example, the sum of the number of other bricks that would fall as a result of disintegrating each brick is 7.
+
+For each brick, determine how many other bricks would fall if that brick were disintegrated. What is the sum of the number of other bricks that would fall?*/
